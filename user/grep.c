@@ -45,11 +45,14 @@ main(int argc, char *argv[])
   }
   pattern = argv[1];
 
+  //eg. grep ^hello
+  //takes input from command line
   if(argc <= 2){
     grep(pattern, 0);
     exit(0);
   }
 
+  //eg. grep ^hello hello.txt
   for(i = 2; i < argc; i++){
     if((fd = open(argv[i], 0)) < 0){
       printf("grep: cannot open %s\n", argv[i]);

@@ -67,7 +67,7 @@ sys_sleep(void)
       release(&tickslock);
       return -1;
     }
-    sleep(&ticks, &tickslock);
+    sleep(&ticks, &tickslock); //sleep while holding the lock (monitor)
   }
   release(&tickslock);
   return 0;
