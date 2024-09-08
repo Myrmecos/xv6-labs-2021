@@ -18,13 +18,15 @@ fmtname(char *path)
   if(strlen(p) >= DIRSIZ)
     return p;
   memmove(buf, p, strlen(p));
-  memset(buf+strlen(p), ' ', DIRSIZ-strlen(p));
+  *(buf + strlen(p)) = '\0';
+  //printf("The formatted name is: %s.\n", buf);
   return buf;
-}
+} //done
 
 void
-ls(char *path)
+find(char *path, char *target)
 {
+    //printf("The target is: %s; \n", target);
   char buf[512], *p;
   int fd;
   struct dirent de;
@@ -43,7 +45,8 @@ ls(char *path)
 
   switch(st.type){
   case T_FILE: //type is a file
-    printf("%s %d %d %l\n", fmtname(path), st.type, st.ino, st.size);
+    //TODO: throw an error as you cannot find a file in a file
+    fprintf(2, "Enter a pathname for find(). Got a filename instead.\n");
     break;
 
   case T_DIR:
@@ -54,6 +57,11 @@ ls(char *path)
     strcpy(buf, path); //copy path to buf
     p = buf+strlen(buf); //ptr move to end of buf
     *p++ = '/'; //end of buf becomes /
+
+    //TODO: when reading an element in dir, check if is a file
+    //if a file, then check if name match
+    //if name match, print file path
+    //if a dir, then call find() again
     while(read(fd, &de, sizeof(de)) == sizeof(de)){ //dirent
       if(de.inum == 0) //
         continue;
@@ -63,7 +71,22 @@ ls(char *path)
         printf("ls: cannot stat %s\n", buf);
         continue;
       }
-      printf("%s %d %d %d\n", fmtname(buf), st.type, st.ino, st.size);
+      switch(st.type) {
+        case T_FILE:
+            //printf("The file name is: %s; The target is: %s\n", fmtname(buf), target);
+            if (strcmp(fmtname(buf), target) == 0) {
+                printf("%s\n", buf);
+            }
+            break;
+        case T_DIR:
+            //find(buf, target);
+            //printf("The directory name is: %s \n", buf);
+            if (strcmp(fmtname(buf), ".") != 0 && strcmp(fmtname(buf), "..") != 0) {
+                find(buf, target);
+            }
+            break;
+      }
+      //printf("%s %d %d %d\n", fmtname(buf), st.type, st.ino, st.size);
     }
     break;
   }
@@ -73,13 +96,16 @@ ls(char *path)
 int
 main(int argc, char *argv[])
 {
-  int i;
 
-  if(argc < 2){
-    ls(".");
+  if(argc < 2) {
+    fprintf(2, "too few arguments.\n");
+    exit(1);
+  }
+
+  if(argc < 3){
+    find(".", argv[1]);
     exit(0);
   }
-  for(i=1; i<argc; i++)
-    ls(argv[i]);
+  find(argv[1], argv[2]);
   exit(0);
 }
