@@ -7,6 +7,32 @@
 #include "syscall.h"
 #include "defs.h"
 
+char *syscal_names[64] = {
+  "fork",
+  "exit",
+  "wait",
+  "pipe",
+  "read",
+  "kill",
+  "exec",
+  "fstat",
+  "chdir",
+  "dup",
+  "getpid",
+  "sbrk",
+  "sleep",
+  "uptime",
+  "open",
+  "write",
+  "mknod",
+  "unlink",
+  "link",
+  "mkdir",
+  "close",
+  "trace"
+};
+
+
 // Fetch the uint64 at addr from the current process.
 int
 fetchaddr(uint64 addr, uint64 *ip)
@@ -104,6 +130,7 @@ extern uint64 sys_unlink(void);
 extern uint64 sys_wait(void);
 extern uint64 sys_write(void);
 extern uint64 sys_uptime(void);
+extern uint64 sys_trace(void);
 
 static uint64 (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -127,6 +154,7 @@ static uint64 (*syscalls[])(void) = {
 [SYS_link]    sys_link,
 [SYS_mkdir]   sys_mkdir,
 [SYS_close]   sys_close,
+[SYS_trace]   sys_trace
 };
 
 void
@@ -143,4 +171,9 @@ syscall(void)
             p->pid, p->name, num);
     p->trapframe->a0 = -1;
   }
+
+  if ((1<<num) & p->mask) {
+    printf("%d: syscall %s -> %d\n", p->pid, syscal_names[num-1], p->trapframe->a0);
+  }
+  
 }
