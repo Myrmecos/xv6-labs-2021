@@ -19,7 +19,7 @@ main(int argc, char *argv[])
     exit(1);
   }
   //when mask illegal (not an int)
-  if (trace(atoi(argv[1])) < 0) {
+  if (trace(atoi(argv[1])) < 0) { //we learn here that trace is int trace(int)
     fprintf(2, "%s: trace failed\n", argv[0]);
     exit(1);
   }
