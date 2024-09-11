@@ -26,6 +26,20 @@ extern char trampoline[]; // trampoline.S
 // must be acquired before any p->lock.
 struct spinlock wait_lock;
 
+//get number of running processes
+uint64 nproc() {
+  struct proc *p = proc;
+  uint64 num = 0;
+  for (p = 0; p < &proc[NPROC]; p++) {
+    acquire(&(p->lock)); //why is &p?
+    if (p->state != UNUSED) {
+      num++;
+    }
+    release(&(p->lock));
+  }
+  return num;
+}
+
 // Allocate a page for each process's kernel stack.
 // Map it high in memory, followed by an invalid
 // guard page.
@@ -249,6 +263,9 @@ userinit(void)
 
 // Grow or shrink user memory by n bytes.
 // Return 0 on success, -1 on failure.
+//nick: it uses uvmalloc or uvmdealloc calls (user mem alloc/dealloc)
+//see the two functions in kernel/vm.c:221
+//n: for sbrk system call
 int
 growproc(int n)
 {

@@ -115,14 +115,15 @@ sys_trace(void) {
 //return sysinfo
 uint64
 sys_sysinfo(void) {
-  struct sysinfo *s;
+  struct sysinfo info;
   struct proc *p = myproc();
-  uint64 si; //user ptr to struct sysinfo
-  if (argaddr(1, &s) < 0) 
+  uint64 addr; //user ptr to struct sysinfo
+  if (argaddr(0, &addr) < 0) 
     return -1;
   //fill in s
-  s->freemem = free_amount();
-  if (copyout(p->pagetable, si, (char*)&si, sizeof(si)) < 0)
+  info.freemem = free_amount();
+  info.nproc = nproc();
+  if (copyout(p->pagetable, addr, (char*)&info, sizeof(info)) < 0)
     return -1;
   return 0;
 }

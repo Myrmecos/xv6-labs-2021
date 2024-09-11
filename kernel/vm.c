@@ -21,7 +21,7 @@ kvmmake(void)
 {
   pagetable_t kpgtbl;
 
-  kpgtbl = (pagetable_t) kalloc();
+  kpgtbl = (pagetable_t) kalloc();//n: kernel page table
   memset(kpgtbl, 0, PGSIZE);
 
   // uart registers
@@ -61,9 +61,9 @@ kvminit(void)
 void
 kvminithart()
 {
-  w_satp(MAKE_SATP(kernel_pagetable));
-  sfence_vma();
-}
+  w_satp(MAKE_SATP(kernel_pagetable)); //nick: write phy addr of root page table to satp register
+  sfence_vma(); //n: riscv instrution sfence.vma, flushes current cpu's TLB
+} //n: for other use of sfence_vma, see trampoline.S: 79, when switching to a user page table before returning to user space
 
 // Return the address of the PTE in page table pagetable
 // that corresponds to virtual address va.  If alloc!=0,
@@ -85,13 +85,13 @@ walk(pagetable_t pagetable, uint64 va, int alloc)
 
   for(int level = 2; level > 0; level--) {
     pte_t *pte = &pagetable[PX(level, va)];
-    if(*pte & PTE_V) {
-      pagetable = (pagetable_t)PTE2PA(*pte);
-    } else {
-      if(!alloc || (pagetable = (pde_t*)kalloc()) == 0)
+    if(*pte & PTE_V) { //nick: bitwise and, if valid
+      pagetable = (pagetable_t)PTE2PA(*pte); //n: to next level of page table
+    } else { //n: if page table entry (pte) not valid
+      if(!alloc || (pagetable = (pde_t*)kalloc()) == 0) //n: if not required to allocate memory
         return 0;
-      memset(pagetable, 0, PGSIZE);
-      *pte = PA2PTE(pagetable) | PTE_V;
+      memset(pagetable, 0, PGSIZE); //n: zero memory
+      *pte = PA2PTE(pagetable) | PTE_V; //n: produce page table entry for next level of page table (page table variable)
     }
   }
   return &pagetable[PX(0, va)];
@@ -150,7 +150,7 @@ mappages(pagetable_t pagetable, uint64 va, uint64 size, uint64 pa, int perm)
       return -1;
     if(*pte & PTE_V)
       panic("mappages: remap");
-    *pte = PA2PTE(pa) | perm | PTE_V;
+    *pte = PA2PTE(pa) | perm | PTE_V; //n: manufacture page table entry
     if(a == last)
       break;
     a += PGSIZE;
@@ -172,9 +172,9 @@ uvmunmap(pagetable_t pagetable, uint64 va, uint64 npages, int do_free)
     panic("uvmunmap: not aligned");
 
   for(a = va; a < va + npages*PGSIZE; a += PGSIZE){
-    if((pte = walk(pagetable, a, 0)) == 0)
+    if((pte = walk(pagetable, a, 0)) == 0) //n: page table entry we searched for is not valid (eg not allocated)
       panic("uvmunmap: walk");
-    if((*pte & PTE_V) == 0)
+    if((*pte & PTE_V) == 0) //nick: when mapping not exist, panic (see this function's description above)
       panic("uvmunmap: not mapped");
     if(PTE_FLAGS(*pte) == PTE_V)
       panic("uvmunmap: not a leaf");
@@ -217,6 +217,7 @@ uvminit(pagetable_t pagetable, uchar *src, uint sz)
 
 // Allocate PTEs and physical memory to grow process from oldsz to
 // newsz, which need not be page aligned.  Returns new size or 0 on error.
+//n: user virtual memory allocation
 uint64
 uvmalloc(pagetable_t pagetable, uint64 oldsz, uint64 newsz)
 {
@@ -234,9 +235,10 @@ uvmalloc(pagetable_t pagetable, uint64 oldsz, uint64 newsz)
       return 0;
     }
     memset(mem, 0, PGSIZE);
+    //nick: a is virtual address
     if(mappages(pagetable, a, PGSIZE, (uint64)mem, PTE_W|PTE_X|PTE_R|PTE_U) != 0){
       kfree(mem);
-      uvmdealloc(pagetable, a, oldsz);
+      uvmdealloc(pagetable, a, oldsz); //n: dealloc page to old size
       return 0;
     }
   }

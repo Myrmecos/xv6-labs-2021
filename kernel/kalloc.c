@@ -21,33 +21,35 @@ struct run {
 struct {
   struct spinlock lock;
   struct run *freelist;
-} kmem;
+} kmem; //n: kmem here is already an instance
 
-int
+uint64
 free_amount() {
-  int cnt = 0;
-  struct run *ptr = kmem.freelist;
+  uint64 cnt = 0;
+  
   acquire(&kmem.lock);
+  struct run *ptr = kmem.freelist;
   while (ptr) {
     ptr = ptr->next;
     cnt++;
   }
   release(&kmem.lock);
-  return cnt;
+  return cnt*PGSIZE;
 }
 
 void
 kinit()
 {
   initlock(&kmem.lock, "kmem");
-  freerange(end, (void*)PHYSTOP);
+  freerange(end, (void*)PHYSTOP); //nick: initialize free list
+  //by plugging everything from phystop to end of kernel
 }
 
 void
 freerange(void *pa_start, void *pa_end)
 {
   char *p;
-  p = (char*)PGROUNDUP((uint64)pa_start);
+  p = (char*)PGROUNDUP((uint64)pa_start); //nick: frees only 4096-byte aligned addresses
   for(; p + PGSIZE <= (char*)pa_end; p += PGSIZE)
     kfree(p);
 }
@@ -65,6 +67,7 @@ kfree(void *pa)
     panic("kfree");
 
   // Fill with junk to catch dangling refs.
+  //nick: when read into garbage, more likely stop because of such intentionally filled garbage
   memset(pa, 1, PGSIZE);
 
   r = (struct run*)pa;
@@ -82,7 +85,10 @@ void *
 kalloc(void)
 {
   struct run *r;
-
+  //nick: acquire spinlock protecting freelist
+  //remove a page from freelist
+  //release the lock
+  //set memory with junk
   acquire(&kmem.lock);
   r = kmem.freelist;
   if(r)

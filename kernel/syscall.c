@@ -62,7 +62,7 @@ static uint64
 argraw(int n)
 {
   struct proc *p = myproc();
-  switch (n) {
+  switch (n) { //nth argument
   case 0:
     return p->trapframe->a0;
   case 1:
@@ -88,7 +88,7 @@ argint(int n, int *ip)
   return 0;
 }
 
-// Retrieve an argument as a pointer.
+// Retrieve an argument as a pointer. (nick: nth argument as ptr)
 // Doesn't check for legality, since
 // copyin/copyout will do that.
 int
