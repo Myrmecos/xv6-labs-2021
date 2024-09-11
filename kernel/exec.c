@@ -9,6 +9,7 @@
 
 static int loadseg(pde_t *pgdir, uint64 addr, struct inode *ip, uint offset, uint sz);
 
+//nick: open named binary *path
 int
 exec(char *path, char **argv)
 {
@@ -46,7 +47,7 @@ exec(char *path, char **argv)
       continue;
     if(ph.memsz < ph.filesz)
       goto bad;
-    if(ph.vaddr + ph.memsz < ph.vaddr)
+    if(ph.vaddr + ph.memsz < ph.vaddr) //nick: this avoids referring to the kernel, as sum could overflow
       goto bad;
     uint64 sz1;
     if((sz1 = uvmalloc(pagetable, sz, ph.vaddr + ph.memsz)) == 0)
@@ -66,6 +67,7 @@ exec(char *path, char **argv)
 
   // Allocate two pages at the next page boundary.
   // Use the second as the user stack.
+  //nick: first is for overflow check
   sz = PGROUNDUP(sz);
   uint64 sz1;
   if((sz1 = uvmalloc(pagetable, sz, sz + 2*PGSIZE)) == 0)
@@ -109,6 +111,11 @@ exec(char *path, char **argv)
   safestrcpy(p->name, last, sizeof(p->name));
     
   // Commit to the user image.
+  //nick: once the new image is complete
+  //exec can commit to the new page table
+  //and free the old one.
+  //this is essentially replacing the
+  //present program with a new program
   oldpagetable = p->pagetable;
   p->pagetable = pagetable;
   p->sz = sz;
@@ -118,6 +125,9 @@ exec(char *path, char **argv)
 
   return argc; // this ends up in a0, the first argument to main(argc, argv)
 
+  //nick: go to bad whenever exec detects an error
+  //frees the new image
+  //returns -1
  bad:
   if(pagetable)
     proc_freepagetable(pagetable, sz);

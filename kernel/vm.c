@@ -345,6 +345,9 @@ uvmclear(pagetable_t pagetable, uint64 va)
 // Copy from kernel to user.
 // Copy len bytes from src to virtual address dstva in a given page table.
 // Return 0 on success, -1 on error.
+//nick: when program tries to use more than 1 page, 
+//copyout will find exec tries to copy arg to inaccessible stack
+//so it will return -1
 int
 copyout(pagetable_t pagetable, uint64 dstva, char *src, uint64 len)
 {

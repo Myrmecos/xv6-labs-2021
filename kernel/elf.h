@@ -1,6 +1,13 @@
 // Format of an ELF executable file
+//nick: xv6 applications are described in the widely-used 
+//ELF format described in this file
 
+//nick: an ELF binary starrts with four-byte 
+//magic number: 0x7F'E''L''F'
 #define ELF_MAGIC 0x464C457FU  // "\x7FELF" in little endian
+
+//nick: a ELF binary consists of an ELF header (struct elfdr)
+//followed by a sequence of program section headers (struct proghdr)
 
 // File header
 struct elfhdr {
