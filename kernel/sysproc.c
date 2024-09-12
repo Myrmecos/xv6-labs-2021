@@ -81,6 +81,15 @@ int
 sys_pgaccess(void)
 {
   // lab pgtbl: your code here.
+  /*char *buf;
+  int num;
+  unsigned int *abits;
+  //check for error later
+  argaddr(0, &buf);
+  argint(1, &num);
+  argaddr(2, &abits);*/
+  
+
   return 0;
 }
 #endif

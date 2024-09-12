@@ -15,6 +15,8 @@ extern char etext[];  // kernel.ld sets this to end of kernel code.
 
 extern char trampoline[]; // trampoline.S
 
+int vmprint_inner(pagetable_t, int); //nick: for printing page table
+
 // Make a direct-map page table for the kernel.
 pagetable_t
 kvmmake(void)
@@ -432,3 +434,64 @@ copyinstr(pagetable_t pagetable, char *dst, uint64 srcva, uint64 max)
     return -1;
   }
 }
+
+//takes a pagetable_t argument
+//print the pagetable in the format:
+//page table <addr>
+//..0: pte <entry> pa <pa>
+//.. .. 0: pte <entry> pa <pa>
+void vmprint(pagetable_t pgtbl) {
+  printf("page table %p\n", pgtbl);
+  vmprint_inner(pgtbl, 2);
+}
+
+int vmprint_inner(pagetable_t pgtbl, int level) {
+  for (int i = 0; i < 512; i++) {
+    pte_t pte = pgtbl[i];
+    int valid = pte&PTE_V;
+    //printf("i: %d\n", i);
+    if (level == 2) {
+      if (valid) {
+        printf("..%d: pte %p pa %p\n", i, pte, PTE2PA(pte));
+        vmprint_inner((pagetable_t) PTE2PA(pte), 1); //should search according to the physical address, not the pte!!!
+      }
+    }
+    if (level == 1) {
+      if (valid) {
+        printf(".. ..%d: pte %p pa %p\n", i, pte, PTE2PA(pte));
+        vmprint_inner((pagetable_t) PTE2PA(pte), 0);
+      }
+    }
+    if (level == 0) {
+      if (valid) {
+        printf(".. .. ..%d: pte %p pa %p\n", i, pte, PTE2PA(pte));
+      }
+    }
+  }
+  return 0;
+}
+
+/*
+//nick:
+output: 
+page table 0x0000000087f6e000
+ ..0: pte 0x0000000021fda801 pa 0x0000000087f6a000
+ .. ..0: pte 0x0000000021fda401 pa 0x0000000087f69000
+ .. .. ..0: pte 0x0000000021fdac1f pa 0x0000000087f6b000
+ .. .. ..1: pte 0x0000000021fda00f pa 0x0000000087f68000
+ .. .. ..2: pte 0x0000000021fd9c1f pa 0x0000000087f67000
+ ..255: pte 0x0000000021fdb401 pa 0x0000000087f6d000
+ .. ..511: pte 0x0000000021fdb001 pa 0x0000000087f6c000
+ .. .. ..509: pte 0x0000000021fdd813 pa 0x0000000087f76000
+ .. .. ..510: pte 0x0000000021fddc07 pa 0x0000000087f77000
+ .. .. ..511: pte 0x0000000020001c0b pa 0x0000000080007000
+
+ page 0: text
+ page 1: data
+ //guard page between stack and data is marked invalid so no illegal access allowed
+ page 2: stack
+ page 509: heap
+ page 510: trapframe
+ page 511: trampoline
+ 
+*/
