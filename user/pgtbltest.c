@@ -56,14 +56,18 @@ pgaccess_test()
   printf("pgaccess_test starting\n");
   testname = "pgaccess_test";
   buf = malloc(32 * PGSIZE);
+  //printf("user: buf: %d; num: 32; abits: %d\n", buf, &abits);
   if (pgaccess(buf, 32, &abits) < 0)
     err("pgaccess failed");
-  printf("abits: %d\n", abits);
+  //printf("abits: %d\n", abits);
   buf[PGSIZE * 1] += 1;
+  //printf("reached user\n");
   buf[PGSIZE * 2] += 1;
   buf[PGSIZE * 30] += 1;
-  if (pgaccess(buf, 32, &abits) < 0)
+  //printf("user: buf: %d; num: 32; abits: %d\n", buf, abits);
+  if (pgaccess(buf, 32, &abits) < 0) //char*, int, *unsigned int
     err("pgaccess failed");
+  //printf("abits: %d\n", abits);
   if (abits != ((1 << 1) | (1 << 2) | (1 << 30)))
     err("incorrect access bits set");
   free(buf);
