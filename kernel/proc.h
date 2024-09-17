@@ -110,4 +110,5 @@ struct proc {
   int ticks; //alarm interval
   void (*handler); //pointer to handler function
   int ticks_passed; //number of ticks passed since last call
+  struct trapframe *saved_trapframe;
 };

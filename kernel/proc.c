@@ -127,6 +127,13 @@ found:
     return 0;
   }
 
+  //nick: trapframe for preserving data for timer interrupt 
+  if((p->saved_trapframe = (struct trapframe *)kalloc()) == 0){
+    freeproc(p);
+    release(&p->lock);
+    return 0;
+  }
+
   // An empty user page table.
   p->pagetable = proc_pagetable(p);
   if(p->pagetable == 0){

@@ -83,7 +83,10 @@ usertrap(void)
   if(which_dev == 2) {
     myproc()->ticks_passed += 1;
     if (myproc()->ticks_passed > myproc()->ticks) {
-      myproc()->trapframe->epc = 0;
+      myproc()->trapframe->epc = (uint64) myproc()->handler; //jump to user's alarm handler code
+      //save registers
+      //myproc()->trapframe
+
     }
   }
     //yield();
