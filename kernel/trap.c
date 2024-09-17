@@ -88,6 +88,7 @@ usertrap(void)
       *(myproc()->saved_trapframe) = *(myproc()->trapframe);
       myproc()->trapframe->epc = (uint64) myproc()->handler; //jump to user's alarm handler code
     }
+    yield();
   }
     //yield();
 

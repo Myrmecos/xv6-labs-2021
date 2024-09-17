@@ -114,5 +114,6 @@ sys_sigreturn(void)
 {
   *(myproc()->trapframe) = *(myproc()->saved_trapframe);
   myproc()->handler_returned = 1;
+  myproc()->ticks_passed = 0; //nick: correction
   return 0;
 }
