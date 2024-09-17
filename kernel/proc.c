@@ -134,6 +134,9 @@ found:
     return 0;
   }
 
+  //nick: handler has not returned
+  p->handler_returned = 1;
+
   // An empty user page table.
   p->pagetable = proc_pagetable(p);
   if(p->pagetable == 0){

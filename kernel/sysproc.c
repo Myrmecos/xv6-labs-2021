@@ -112,5 +112,7 @@ sys_sigalarm(void)
 uint64
 sys_sigreturn(void)
 {
+  *(myproc()->trapframe) = *(myproc()->saved_trapframe);
+  myproc()->handler_returned = 1;
   return 0;
 }

@@ -82,11 +82,11 @@ usertrap(void)
   // give up the CPU if this is a timer interrupt.
   if(which_dev == 2) {
     myproc()->ticks_passed += 1;
-    if (myproc()->ticks_passed > myproc()->ticks) {
-      myproc()->trapframe->epc = (uint64) myproc()->handler; //jump to user's alarm handler code
+    if (myproc()->ticks_passed > myproc()->ticks && myproc()->handler_returned == 1) {
+      myproc()->handler_returned = 0;
       //save registers
-      //myproc()->trapframe
-
+      *(myproc()->saved_trapframe) = *(myproc()->trapframe);
+      myproc()->trapframe->epc = (uint64) myproc()->handler; //jump to user's alarm handler code
     }
   }
     //yield();
