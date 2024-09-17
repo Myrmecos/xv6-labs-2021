@@ -121,6 +121,7 @@ panic(char *s)
   printf("panic: ");
   printf(s);
   printf("\n");
+  backtrace();
   panicked = 1; // freeze uart output from other CPUs
   for(;;)
     ;
@@ -131,4 +132,28 @@ printfinit(void)
 {
   initlock(&pr.lock, "pr");
   pr.locking = 1;
+}
+
+//TODO: print frame pointers of callers
+//nick
+uint64 GET_RET_ADDR(uint64 fp) {
+  return *(uint64*)(fp-8*sizeof(char));// - 8*sizeof(char);
+}
+uint64 GET_PREV_FP(uint64 fp) {
+  return *(uint64*)(fp-16*sizeof(char));
+}
+
+void backtrace() {
+  printf("backtrace:\n");
+  uint64 fp = r_fp(); //fp is the address of the frame ptr
+  uint64 fp0 = fp;
+  uint64 ret_addr;
+
+  while ((fp < PGROUNDUP(fp0) && fp > PGROUNDDOWN(fp0))) {
+  //for (int i = 0; i < 3; i++) {
+    //printf("fp: %p\n", fp);
+   ret_addr = GET_RET_ADDR(fp);
+   printf("%p\n", ret_addr);
+   fp = GET_PREV_FP(fp);
+  }
 }

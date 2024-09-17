@@ -43,6 +43,9 @@ usertrap(void)
 
   // send interrupts and exceptions to kerneltrap(),
   // since we're now in the kernel.
+  //nick: stvec (supervisor trap vector) points to
+  //address of trap vector (assembly code for handling
+  //trap)
   w_stvec((uint64)kernelvec);
 
   struct proc *p = myproc();

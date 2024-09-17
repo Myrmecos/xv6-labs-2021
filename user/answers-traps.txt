@@ -1,0 +1,6 @@
+1. a0 #a0-a7 审题
+2. they are inlined, ie the function result is directly computed and stored in `li a1,12`#correct
+3. in a register at memory location 0x1536 #1536 + ra, as auipc ra, 0x0 -> ra = pc+0
+4. 38 #0x38
+5. He110 World; i = 726c6400; 57616 should be 10e1 #should not be changed as it is represented as a hex number!!!!
+6. value in a2 will be printed #correct
