@@ -98,7 +98,7 @@ consoleread(int user_dst, uint64 dst, int n)
 
     c = cons.buf[cons.r++ % INPUT_BUF];
 
-    if(c == C('D')){  // end-of-file
+    if(c == C('D')){  // end-of-file //nick: reaching EOF let the program using consoleread read next input with 0 bytes. Then it knows there's nothing more to read! Think of a user program that continuously asks for input, and one way to stop it normally is to ^D after the final input to tell the program we're finished. 
       if(n < target){
         // Save ^D for next time, to make sure
         // caller gets a 0-byte result.
@@ -123,7 +123,7 @@ consoleread(int user_dst, uint64 dst, int n)
   }
   release(&cons.lock);
 
-  return target - n;
+  return target - n; //nick: returns how many bytes we read
 }
 
 //
