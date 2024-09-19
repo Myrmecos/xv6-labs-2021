@@ -311,14 +311,26 @@ uvmcopy(pagetable_t old, pagetable_t new, uint64 sz)
     if((*pte & PTE_V) == 0)
       panic("uvmcopy: page not present");
     pa = PTE2PA(*pte);
-    flags = PTE_FLAGS(*pte);
-    if((mem = kalloc()) == 0)
+
+    //nick: task 1
+    /*if((mem = kalloc()) == 0)
       goto err;
-    memmove(mem, (char*)pa, PGSIZE);
-    if(mappages(new, i, PGSIZE, (uint64)mem, flags) != 0){
+    memmove(mem, (char*)pa, PGSIZE);*/
+
+    *pte |= PTE_COW; //set COW bit to 1 for parent
+    *pte &= ~PTE_W; //set write bit to 0 for parent
+    flags = PTE_FLAGS(*pte); //prepare permission bit for child
+    
+    /*if(mappages(new, i, PGSIZE, (uint64)mem, flags) != 0){
       kfree(mem);
       goto err;
-    }
+    }*/
+
+   if(mappages(new, i, PGSIZE, (uint64)old, flags) != 0){ 
+      kfree(mem);
+      goto err;
+
+
   }
   return 0;
 

@@ -49,6 +49,16 @@ usertrap(void)
   
   // save user program counter.
   p->trapframe->epc = r_sepc();
+
+  //TODO: if page fault, 
+  //check valid: get current pte
+  //kalloc new page
+  //copy old page to new page
+  //set write bit
+  //clear cow bit
+  if (r_scause() == 15) { //write page fault
+    
+  }
   
   if(r_scause() == 8){
     // system call
