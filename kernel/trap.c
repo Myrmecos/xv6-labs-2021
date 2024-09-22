@@ -65,6 +65,21 @@ usertrap(void)
     intr_on();
 
     syscall();
+  } else if (r_scause() == 13 || r_scause() == 15) {
+    uint64 va = r_stval();
+    //printf("the faulting virtual address is: %p\n", va);
+    
+    //allocate new memory!
+    pte_t *pte = walk(p->pagetable, va, 0);
+    uint64 pa = PTE2PA(*pte);
+    char *mem = kalloc();
+    //copy original page to it
+    memmove(mem, (char*)pa, PGSIZE);
+    *pte |= PTE_W;
+    //map to new memery
+    uint flags = PTE_FLAGS(*pte);
+    mappages(p->pagetable, PGROUNDDOWN(va), PGSIZE, pa, flags);
+
   } else if((which_dev = devintr()) != 0){
     // ok
   } else {
