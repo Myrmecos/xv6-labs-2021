@@ -47,6 +47,9 @@ freerange(void *pa_start, void *pa_end)
 void
 kfree(void *pa)
 {
+  if (get_ref((uint64) pa) > 0) {
+    return;
+  }
 
   if (arr[((uint64)pa-(uint64)end)/PGSIZE] > 0) {
     return;
@@ -83,6 +86,21 @@ kalloc(void)
 
   if(r)
     memset((char*)r, 5, PGSIZE); // fill with junk
-  arr[((uint64)r-(uint64)end)/PGSIZE] = (uint8) 1;
+  add_ref((uint64)r);
   return (void*)r;
+}
+
+void add_ref(uint64 pa) {
+  arr[((uint64)pa-(uint64)end)/PGSIZE] += (uint8) 1;
+}
+
+void sub_ref(uint64 pa) {
+  arr[((uint64)pa-(uint64)end)/PGSIZE] -= (uint8) 1;
+  if (arr[((uint64)pa-(uint64)end)/PGSIZE] == 0) {
+    kfree((void*) pa);
+  }
+}
+
+uint8 get_ref(uint64 pa) {
+  return arr[((uint64)pa-(uint64)end)/PGSIZE];
 }
