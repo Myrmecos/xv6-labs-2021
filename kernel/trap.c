@@ -66,20 +66,29 @@ usertrap(void)
 
     syscall();
   } else if (r_scause() == 13 || r_scause() == 15) {
+
+    //nick: cow lab
     uint64 va = r_stval();
     //printf("the faulting virtual address is: %p\n", va);
     
     //allocate new memory!
     pte_t *pte = walk(p->pagetable, va, 0);
+    if (((*pte) & PTE_COW) == 0) {exit(-1);}
     uint64 pa = PTE2PA(*pte);
-    char *mem = kalloc();
-    //copy original page to it
-    memmove(mem, (char*)pa, PGSIZE);
-    *pte |= PTE_W;
-    //map to new memery
-    uint flags = PTE_FLAGS(*pte);
-    mappages(p->pagetable, PGROUNDDOWN(va), PGSIZE, (uint64) mem, flags);
-    sub_ref((uint64)pa); //nick: for subtracting counts
+    if (get_ref(pa) == 1) {
+      *pte |= PTE_W;
+      *pte &= ~PTE_COW;
+    } else {
+      char *mem = kalloc();
+      //copy original page to it
+      memmove(mem, (char*)pa, PGSIZE);
+      *pte |= PTE_W;
+      *pte &= ~PTE_COW;
+      //map to new memery
+      uint flags = PTE_FLAGS(*pte);
+      mappages(p->pagetable, PGROUNDDOWN(va), PGSIZE, (uint64) mem, flags);
+      sub_ref((uint64)pa); //nick: for subtracting counts
+    }
     
   } else if((which_dev = devintr()) != 0){
     // ok

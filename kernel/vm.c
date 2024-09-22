@@ -356,6 +356,26 @@ copyout(pagetable_t pagetable, uint64 dstva, char *src, uint64 len)
 
   while(len > 0){
     va0 = PGROUNDDOWN(dstva);
+
+    pte_t *pte = walk(pagetable, va0, 0);
+    if (((*pte) & PTE_COW) != 0) {
+      uint64 pa = PTE2PA(*pte);
+      if (get_ref(pa) == 1) {
+        *pte |= PTE_W;
+        *pte &= ~PTE_COW;
+      } else {
+        char *mem = kalloc();
+        //copy original page to it
+        memmove(mem, (char*)pa, PGSIZE);
+        *pte |= PTE_W;
+        *pte &= ~PTE_COW;
+        //map to new memery
+        uint flags = PTE_FLAGS(*pte);
+        mappages(pagetable, PGROUNDDOWN(dstva), PGSIZE, (uint64) mem, flags);
+        sub_ref((uint64)pa); //nick: for subtracting counts
+      }
+    }
+
     pa0 = walkaddr(pagetable, va0);
     if(pa0 == 0)
       return -1;
