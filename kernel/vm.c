@@ -314,6 +314,7 @@ uvmcopy(pagetable_t old, pagetable_t new, uint64 sz)
     *pte = *pte&(~PTE_W);
     *pte = *pte|PTE_COW;
     flags = PTE_FLAGS(*pte);
+    add_ref(pa); //nick: for adding count
 
     /*char *mem;
     if((mem = kalloc()) == 0)

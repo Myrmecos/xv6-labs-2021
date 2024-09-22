@@ -79,7 +79,7 @@ usertrap(void)
     //map to new memery
     uint flags = PTE_FLAGS(*pte);
     mappages(p->pagetable, PGROUNDDOWN(va), PGSIZE, (uint64) mem, flags);
-    //sub_ref((uint64)pa);
+    sub_ref((uint64)pa); //nick: for subtracting counts
     
   } else if((which_dev = devintr()) != 0){
     // ok
