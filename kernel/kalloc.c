@@ -47,7 +47,16 @@ freerange(void *pa_start, void *pa_end)
 void
 kfree(void *pa)
 {
+  //one situationn when kfree is called
+  //is when a process calls kfree on a page
+  //to it the page no longer exists,
+  //thus one less reference;
+  //==
+  //another situation is when all references are gone and 
+  //the system (let's pretend it's not the process) calls 
+  //kfree to free the page
   if (get_ref((uint64) pa) > 0) {
+    sub_ref((uint64) pa); 
     return;
   }
 
